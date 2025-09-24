@@ -30,18 +30,57 @@ class Lock {
     const inputSecurity = new Lock.Security(inputSecurityOptions);
     if (inputPin === this.pin && this.security.matchesAny(inputSecurity)) {
       console.log("🔓 Access granted.");
+      return true;
     } else {
       console.log("🔐 Access denied.");
+      return false;
     }
   }
 }
 
-// create a lock with specific configuration
-const simpleLock = new Lock("Mirash", 1234, { faceID: true, fingerPrint: 5 });
+// advanced lock that extends Lock providing additional functionality (inheritance)
+class SmartLock extends Lock {
+  #accessAttemptCount = 0;
+  #maxAttemptsCount;
+  constructor(userName, pin, securityConfig, maxAttemptsCount = 3) {
+    super(userName, pin, securityConfig); // call parent constructor
+    this.#maxAttemptsCount = maxAttemptsCount;
+  }
 
-simpleLock.checkAccess(1234, { faceID: true });
-simpleLock.checkAccess(1234, { fingerPrint: 5 });
-simpleLock.checkAccess(1234, { faceID: false, fingerPrint: 5 });
-simpleLock.checkAccess(1234);
-simpleLock.checkAccess(0, { faceID: true, fingerPrint: 5 });
-simpleLock.checkAccess(1234, { faceID: false, fingerPrint: 2 });
+  checkAccess(inputPin, inputSecurityOptions = {}) {
+    if (this.#accessAttemptCount >= this.#maxAttemptsCount) {
+      console.log("🔐 Lock is blocked (forever?).");
+      return false;
+    }
+    const isAccessGranted = super.checkAccess(inputPin, inputSecurityOptions);
+    if (isAccessGranted) {
+      this.#accessAttemptCount = 0;
+    } else {
+      this.#accessAttemptCount++;
+    }
+    return isAccessGranted;
+  }
+}
+
+// create a lock with specific configuration
+const lock = new Lock("Mirash", 1234, { faceID: true, fingerPrint: 5 });
+// run experiments
+console.log("=== Lock ===");
+lock.checkAccess(1234, { faceID: true });
+lock.checkAccess(1234, { fingerPrint: 5 });
+lock.checkAccess(1234, { faceID: false, fingerPrint: 5 });
+lock.checkAccess(1234);
+lock.checkAccess(0, { faceID: true, fingerPrint: 5 });
+lock.checkAccess(1234, { faceID: false, fingerPrint: 2 });
+console.log("\n=== SmartLock ===");
+// create an advanced lock with the same configuration
+const smnartLock = new SmartLock("Mirash", 1234, { faceID: true, fingerPrint: 5 });
+// run experiments
+smnartLock.checkAccess(1234, { faceID: true });
+smnartLock.checkAccess(1234);
+smnartLock.checkAccess(0, { faceID: true, fingerPrint: 5 });
+smnartLock.checkAccess(1234, { faceID: false, fingerPrint: 2 });
+smnartLock.checkAccess(1234, { fingerPrint: 5 });
+smnartLock.checkAccess(1234, { faceID: true });
+smnartLock.checkAccess(1984);
+smnartLock.checkAccess(1234, { faceID: true, fingerPrint: 5 });
